@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Football Card Pack Opener</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- HOME SCREEN ICON - MUST BE EXACT FILENAME -->
+    <link rel="apple-touch-icon" sizes="180x180" href="cards.png.jpg">
+    <link rel="icon" type="image/jpeg" href="cards.png.jpg">
+    <link rel="shortcut icon" href="cards.png.jpg">
+
+    <!-- iOS WEB APP META -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Card Packs">
+
+    <!-- ANDROID/CHROME META -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a4d2e">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(180deg, #0a4d2e 0%, #083a23 100%);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+.container { max-width: 500px; margin: 0 auto; }
+        h1 { text-align: center; margin: 10px 0; font-size: 1.8em; }
+.stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #083a23;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #1a5c3a;
+            margin-bottom: 15px;
+        }
+.stat { text-align: center; }
+.stat-value { font-weight: bold; color: #ffd700; font-size: 1.2em; }
+.pack-section {
+            background: #083a23;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #1a5c3a;
+            margin-bottom: 20px;
+        }
+.pack-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+.pack-btn {
+            border: 3px solid #fff;
+            color: #0a4d2e;
+            padding: 18px;
+            font-size: 1.1em;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+.pack-btn:hover:not(:disabled) { transform: scale(1.03); }
+.pack-btn:active { transform: scale(0.98); }
+.pack-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pack-standard { background: linear-gradient(135deg, #8d8d8d, #c0c0c0); }
+.pack-premium {
+            background: linear-gradient(135deg, #d4af37, #ffd700);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+.pack-ultimate {
+            background: linear-gradient(135deg, #ff6b35, #f72585, #b5179e);
+            box-shadow: 0 4px 15px rgba(247, 37, 133, 0.5);
+            animation: rainbow 3s linear infinite;
+        }
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+.pack-odds { font-size: 0.75em; opacity: 0.9; margin-top: 5px; }
+.cards-display {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 20px 0;
+            min-height: 140px;
+            perspective: 1000px;
+        }
+.card {
+            background: #1a5c3a;
+            border: 2px solid #2d7a4f;
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: rotateY(90deg) scale(0.5);
+        }
+.card.show {
+            opacity: 1;
+            transform: rotateY(0) scale(1);
+        }
+.card:hover { transform: translateY(-5px) scale(1.05); }
+.card.bronze { border-color: #cd7f32; background: linear-gradient(135deg, #1a5c3a, #4a3a1a); }
+.card.silver { border-color: #c0c0c0; background: linear-gradient(135deg, #1a5c3a, #4a4a4a); }
+.card.gold {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #1a5c3a, #4a4a1a);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            animation: goldGlow 1s ease-in-out;
+        }
+.card.legend {
+            border-color: #ff6b35;
+            background: linear-gradient(135deg, #1a5c3a, #4a1a1a);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+            animation: legendPulse 0.6s ease-in-out;
+        }
+        @keyframes goldGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+        }
+        @keyframes legendPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); box-shadow: 0 0 40px rgba(255, 107, 53, 1); }
+            100% { transform: scale(1); }
+        }
+.card-rating { font-weight: bold; font-size: 1.3em; margin-bottom: 3px; }
+.card-name { font-size: 0.8em; line-height: 1.1; }
+.card-value { font-size: 0.7em; opacity: 0.8; margin-top: 3px; }
+.confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            pointer-events: none;
+            z-index: 9999;
+            animation: confettiFall 2s linear forwards;
+        }
+        @keyframes confettiFall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+.tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+.tab {
+            flex: 1;
+            background: #1a5c3a;
+            border: 2px solid #2d7a4f;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+.tab.active { background: #2d7a4f; border-color: #ffd700; }
+.collection {
+            background: #083a23;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #1a5c3a;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+.collection-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+.collection-card {
+            background: #1a5c3a;
+            border: 2px solid #2d7a4f;
+            border-radius: 6px;
+            padding: 6px 3px;
+            text-align: center;
+            font-size: 0.7em;
+        }
+.collection-card.owned { opacity: 1; }
+.collection-card.unowned { opacity: 0.3; filter: grayscale(100%); }
+.progress-bar {
+            background: #1a5c3a;
+            height: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+.progress-fill {
+            background: linear-gradient(90deg, #2d7a4f, #ffd700);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+.shop-item {
+            background: #1a5c3a;
+            border: 2px solid #2d7a4f;
+            border-radius: 8px;
+            margin: 10px 0;
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+.shop-item:hover:not(.disabled) { background: #2d7a4f; }
+.shop-item.disabled { opacity: 0.4; cursor: not-allowed; }
+.rebirth {
+            background: linear-gradient(135deg, #8b6914, #d4af37);
+            border: 2px solid #ffd700;
+        }
+.sell-all-btn {
+            background: #e74c3c;
+            border: 2px solid #c0392b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+        }
+.debug { font-size: 0.8em; opacity: 0.7; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ Card Pack Opener ⚽</h1>
+
+        <div class="stats-bar">
+            <div class="stat">Money<br><span class="stat-value">£<span id="money">5000</span></span></div>
+            <div class="stat">Cards<br><span class="stat-value"><span id="totalCards">0</span></span></div>
+            <div class="stat">Prestige<br><span class="stat-value"><span id="prestige">0</span></span></div>
+        </div>
+
+        <div class="pack-section">
+            <div class="pack-buttons">
+                <button class="pack-btn pack-standard" id="standardBtn">
+                    STANDARD PACK - £1,000
+                    <div class="pack-odds">Legend: 2% | Gold: 8% | Silver: 20%</div>
+                </button>
+                <button class="pack-btn pack-premium" id="premiumBtn">
+                    PREMIUM PACK - £5,000
+                    <div class="pack-odds">Legend: 8% | Gold: 20% | Silver: 40%</div>
+                </button>
+                <button class="pack-btn pack-ultimate" id="ultimateBtn">
+                    ULTIMATE PACK - £25,000
+                    <div class="pack-odds">Legend: 25% | Gold: 40% | Silver: 30%</div>
+                </button>
+            </div>
+            <div class="cards-display" id="cardsDisplay"></div>
+            <div class="debug" id="debug">Ready</div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" id="collectionTab">Collection</div>
+            <div class="tab" id="shopTab">Shop</div>
+        </div>
+
+        <div id="collection-tab" class="collection">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0/100</div>
+            </div>
+            <button class="sell-all-btn" id="sellAllBtn">Sell All Duplicates</button>
+            <div class="collection-grid" id="collectionGrid"></div>
+        </div>
+
+        <div id="shop-tab" class="collection" style="display:none;">
+            <div class="shop-item rebirth" id="rebirth">
+                <div style="font-weight: bold; font-size: 1.1em;">🏆 PRESTIGE 🏆</div>
+                <div style="font-size: 0.85em; margin-top: 5px;">Reset cards, keep 2x pack luck on ALL packs | Cost: £100,000</div>
+            </div>
+            <div class="shop-item" id="upgradeBtn">
+                <div style="font-weight: bold;">Premium Pack Upgrade</div>
+                <div style="font-size: 0.85em; margin-top: 5px;">+1% Legend chance on ALL packs | Cost: £<span id="upgradeCost">10000</span> | Owned: <span id="upgradeOwned">0</span></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+var money = 5000;
+var totalCards = 0;
+var prestige = 0;
+var betterPackLevel = 0;
+var betterPackCost = 10000;
+var openingPack = false;
+
+var PACKS = {
+    standard: { cost: 1000, legend: 0.02, gold: 0.08, silver: 0.20 },
+    premium: { cost: 5000, legend: 0.08, gold: 0.20, silver: 0.40 },
+    ultimate: { cost: 25000, legend: 0.25, gold: 0.40, silver: 0.30 }
+};
+
+var PLAYERS = [
+    { name: "Messi", rating: 93, rarity: "legend", value: 10000 },
+    { name: "Ronaldo", rating: 92, rarity: "legend", value: 9000 },
+    { name: "Haaland", rating: 91, rarity: "legend", value: 8000 },
+    { name: "Mbappe", rating: 91, rarity: "legend", value: 8000 },
+    { name: "De Bruyne", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Salah", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Kane", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Van Dijk", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Bellingham", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Vinicius Jr", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Rodri", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Saka", rating: 90, rarity: "legend", value: 7000 },
+    { name: "Son Heung-min", rating: 89, rarity: "gold", value: 2500 },
+    { name: "Bruno Fernandes", rating: 88, rarity: "gold", value: 2200 },
+    { name: "Bernardo Silva", rating: 88, rarity: "gold", value: 2200 },
+    { name: "Phil Foden", rating: 88, rarity: "gold", value: 2200 },
+    { name: "Cole Palmer", rating: 87, rarity: "gold", value: 2000 },
+    { name: "Declan Rice", rating: 87, rarity: "gold", value: 2000 },
+    { name: "Martin Ødegaard", rating: 87, rarity: "gold", value: 2000 },
+    { name: "Marcus Rashford", rating: 86, rarity: "gold", value: 1800 },
+    { name: "Jack Grealish", rating: 85, rarity: "gold", value: 1500 },
+    { name: "James Maddison", rating: 85, rarity: "gold", value: 1500 },
+    { name: "Kieran Trippier", rating: 84, rarity: "gold", value: 1300 },
+    { name: "John Stones", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Kyle Walker", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Alisson", rating: 89, rarity: "gold", value: 2500 },
+    { name: "Ederson", rating: 88, rarity: "gold", value: 2200 },
+    { name: "Aaron Ramsdale", rating: 83, rarity: "gold", value: 1200 },
+    { name: "Ivan Toney", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Ollie Watkins", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Alexander Isak", rating: 85, rarity: "gold", value: 1500 },
+    { name: "Cody Gakpo", rating: 83, rarity: "gold", value: 1200 },
+    { name: "Luis Diaz", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Dominik Szoboszlai", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Alexis Mac Allister", rating: 84, rarity: "gold", value: 1300 },
+    { name: "Trent Alexander-Arnold", rating: 86, rarity: "gold", value: 1800 },
+    { name: "Andrew Robertson", rating: 85, rarity: "gold", value: 1500 },
+    { name: "Ruben Dias", rating: 87, rarity: "gold", value: 2000 },
+    { name: "William Saliba", rating: 86, rarity: "gold", value: 1800 },
+    { name: "Jarrod Bowen", rating: 79, rarity: "silver", value: 500 },
+    { name: "James Ward-Prowse", rating: 78, rarity: "silver", value: 480 },
+    { name: "Conor Gallagher", rating: 77, rarity: "silver", value: 450 },
+    { name: "Eberechi Eze", rating: 77, rarity: "silver", value: 450 },
+    { name: "Michael Olise", rating: 77, rarity: "silver", value: 450 },
+    { name: "Kaoru Mitoma", rating: 76, rarity: "silver", value: 420 },
+    { name: "Evan Ferguson", rating: 75, rarity: "silver", value: 400 },
+    { name: "Joao Pedro", rating: 75, rarity: "silver", value: 400 },
+    { name: "Rasmus Højlund", rating: 76, rarity: "silver", value: 420 },
+    { name: "Alejandro Garnacho", rating: 75, rarity: "silver", value: 400 },
+    { name: "Kobbie Mainoo", rating: 74, rarity: "silver", value: 380 },
+    { name: "Levi Colwill", rating: 74, rarity: "silver", value: 380 },
+    { name: "Malo Gusto", rating: 73, rarity: "silver", value: 350 },
+    { name: "Destiny Udogie", rating: 74, rarity: "silver", value: 380 },
+    { name: "Pedro Porro", rating: 75, rarity: "silver", value: 400 },
+    { name: "Anthony Gordon", rating: 76, rarity: "silver", value: 420 },
+    { name: "Morgan Gibbs-White", rating: 75, rarity: "silver", value: 400 },
+    { name: "Douglas Luiz", rating: 76, rarity: "silver", value: 420 },
+    { name: "Bruno Guimaraes", rating: 78, rarity: "silver", value: 480 },
+    { name: "Moises Caicedo", rating: 77, rarity: "silver", value: 450 },
+    { name: "Enzo Fernandez", rating: 78, rarity: "silver", value: 480 },
+    { name: "Kai Havertz", rating: 77, rarity: "silver", value: 450 },
+    { name: "Gabriel Martinelli", rating: 79, rarity: "silver", value: 500 },
+    { name: "Gabriel Jesus", rating: 79, rarity: "silver", value: 500 },
+    { name: "Diogo Jota", rating: 79, rarity: "silver", value: 500 },
+    { name: "Darwin Nunez", rating: 78, rarity: "silver", value: 480 },
+    { name: "Christopher Nkunku", rating: 78, rarity: "silver", value: 480 },
+    { name: "Raheem Sterling", rating: 79, rarity: "silver", value: 500 },
+    { name: "Mason Mount", rating: 77, rarity: "silver", value: 450 },
+    { name: "Reece James", rating: 78, rarity: "silver", value: 480 },
+    { name: "Ben Chilwell", rating: 76, rarity: "silver", value: 420 },
+    { name: "Luke Shaw", rating: 77, rarity: "silver", value: 450 },
+    { name: "Harry Maguire", rating: 74, rarity: "silver", value: 380 },
+    { name: "Lisandro Martinez", rating: 76, rarity: "silver", value: 420 },
+    { name: "Raphael Varane", rating: 78, rarity: "silver", value: 480 },
+    { name: "Andre Onana", rating: 77, rarity: "silver", value: 450 },
+    { name: "David Raya", rating: 76, rarity: "silver", value: 420 },
+    { name: "Emiliano Martinez", rating: 78, rarity: "silver", value: 480 },
+    { name: "Nick Pope", rating: 75, rarity: "silver", value: 400 },
+    { name: "Jordan Pickford", rating: 76, rarity: "silver", value: 420 },
+    { name: "Callum Wilson", rating: 77, rarity: "silver", value: 450 },
+    { name: "Dominic Calvert-Lewin", rating: 75, rarity: "silver", value: 400 },
+    { name: "Danny Ings", rating: 74, rarity: "silver", value: 380 },
+    { name: "Michail Antonio", rating: 75, rarity: "silver", value: 400 },
+    { name: "Neal Maupay", rating: 72, rarity: "silver", value: 320 },
+    { name: "Danny Welbeck", rating: 73, rarity: "silver", value: 350 },
+    { name: "Che Adams", rating: 72, rarity: "silver", value: 320 },
+    { name: "Chris Wood", rating: 73, rarity: "silver", value: 350 },
+    { name: "Rodrigo", rating: 75, rarity: "silver", value: 400 },
+    { name: "Patrick Bamford", rating: 74, rarity: "silver", value: 380 },
+    { name: "Eddie Nketiah", rating: 73, rarity: "silver", value: 350 },
+    { name: "Armando Broja", rating: 72, rarity: "silver", value: 320 },
+    { name: "Taiwo Awoniyi", rating: 74, rarity: "silver", value: 380 },
+    { name: "Brennan Johnson", rating: 74, rarity: "silver", value: 380 },
+    { name: "Anthony Elanga", rating: 73, rarity: "silver", value: 350 },
+    { name: "Facundo Buonanotte", rating: 71, rarity: "silver", value: 300 },
+    { name: "Julio Enciso", rating: 72, rarity: "silver", value: 320 },
+    { name: "Simon Adingra", rating: 71, rarity: "silver", value: 300 },
+    { name: "Ansu Fati", rating: 75, rarity: "silver", value: 400 },
+    { name: "Solly March", rating: 74, rarity: "silver", value: 380 },
+    { name: "Pascal Gross", rating: 75, rarity: "silver", value: 400 },
+    { name: "Billy Gilmour", rating: 72, rarity: "silver", value: 320 },
+    { name: "Adam Lallana", rating: 73, rarity: "silver", value: 350 },
+    { name: "James Milner", rating: 74, rarity: "silver", value: 380 },
+    { name: "Thiago Silva", rating: 79, rarity: "silver", value: 500 },
+    { name: "Ibrahima Konate", rating: 76, rarity: "silver", value: 420 },
+    { name: "Joel Matip", rating: 75, rarity: "silver", value: 400 },
+    { name: "Joe Gomez", rating: 74, rarity: "silver", value: 380 },
+    { name: "Kostas Tsimikas", rating: 73, rarity: "silver", value: 350 },
+    { name: "Caoimhin Kelleher", rating: 72, rarity: "silver", value: 320 },
+    { name: "Adrian", rating: 70, rarity: "silver", value: 280 },
+    { name: "Stefan Ortega", rating: 74, rarity: "silver", value: 380 },
+    { name: "Scott Carson", rating: 68, rarity: "silver", value: 250 },
+    { name: "Zack Steffen", rating: 70, rarity: "silver", value: 280 },
+    { name: "Youth Striker", rating: 58, rarity: "bronze", value: 90 },
+    { name: "Academy Defender", rating: 55, rarity: "bronze", value: 80 },
+    { name: "Reserve Keeper", rating: 52, rarity: "bronze", value: 70 },
+    { name: "U21 Midfielder", rating: 60, rarity: "bronze", value: 100 },
+    { name: "League Two Star", rating: 62, rarity: "bronze", value: 110 },
+    { name: "Non-League Hero", rating: 48, rarity: "bronze", value: 60 },
+    { name: "Sunday League Pro", rating: 50, rarity: "bronze", value: 65 },
+    { name: "Pub Team Captain", rating: 45, rarity: "bronze", value: 50 },
+    { name: "Mascot", rating: 40, rarity: "bronze", value: 40 },
+    { name: "Water Boy", rating: 42, rarity: "bronze", value: 45 },
+    { name: "Kit Man", rating: 43, rarity: "bronze", value: 48 },
+    { name: "Groundskeeper", rating: 44, rarity: "bronze", value: 49 },
+    { name: "Tea Lady", rating: 41, rarity: "bronze", value: 42 },
+    { name: "Bus Driver", rating: 46, rarity: "bronze", value: 52 },
+    { name: "Security Guard", rating: 47, rarity: "bronze", value: 55 },
+    { name: "Stadium Announcer", rating: 49, rarity: "bronze", value: 62 }
+];
+
+var collection = {};
+for (var j = 0; j < PLAYERS.length; j++) {
+    collection[PLAYERS[j].name] = 0;
+}
+
+function debug(msg) {
+    console.log(msg);
+    var d = document.getElementById('debug');
+    if (d) d.textContent = msg;
+}
+
+function getPackOdds(packType) {
+    var base = PACKS[packType];
+    var legendBonus = (betterPackLevel * 0.01) + (prestige * 0.01);
+    return {
+        legend: base.legend + legendBonus,
+        gold: base.gold,
+        silver: base.silver
+    };
+}
+
+function openPack(packType) {
+    try {
+        debug('openPack called: ' + packType);
+
+        if (openingPack) {
+            debug('Already opening a pack...');
+            return;
+        }
+
+        var pack = PACKS[packType];
+        if (money < pack.cost) {
+            debug('Not enough money!');
+            return;
+        }
+
+        openingPack = true;
+        money -= pack.cost;
+        updateDisplay();
+        debug('Opening ' + packType + ' pack...');
+
+        var cardsDisplay = document.getElementById('cardsDisplay');
+        cardsDisplay.innerHTML = '';
+
+        var odds = getPackOdds(packType);
+        var cardsOpened = 0;
+
+        for (var i = 0; i < 5; i++) {
+            (function(index) {
+                setTimeout(function() {
+                    try {
+                        var rand = Math.random();
+                        var rarity;
+                        if (rand < odds.legend) rarity = "legend";
+                        else if (rand < odds.legend + odds.gold) rarity = "gold";
+                        else if (rand < odds.legend + odds.gold + odds.silver) rarity = "silver";
+                        else rarity = "bronze";
+
+                        var pool = [];
+                        for (var k = 0; k < PLAYERS.length; k++) {
+                            if (PLAYERS[k].rarity === rarity) pool.push(PLAYERS[k]);
+                        }
+                        var card = pool[Math.floor(Math.random() * pool.length)];
+
+                        collection[card.name]++;
+                        if (collection[card.name] === 1) totalCards++;
+
+                        var cardEl = document.createElement('div');
+                        cardEl.className = 'card ' + card.rarity;
+                        cardEl.innerHTML = '<div class="card-rating">' + card.rating + '</div><div class="card-name">' + card.name + '</div><div class="card-value">£' + card.value + '</div>';
+                        cardEl.onclick = function() { sellCard(card.name); };
+                        cardsDisplay.appendChild(cardEl);
+
+                        setTimeout(function() {
+                            cardEl.classList.add('show');
+                            if (card.rarity === 'legend') createConfetti();
+                        }, 50);
+
+                        cardsOpened++;
+                        if (cardsOpened === 5) {
+                            setTimeout(function() {
+                                openingPack = false;
+                                updateDisplay();
+                                saveGame();
+                                renderCollection();
+                                debug('Pack opened! Tap duplicates to sell.');
+                            }, 600);
+                        }
+                    } catch (e) {
+                        console.error('Card error:', e);
+                        openingPack = false;
+                        updateDisplay();
+                    }
+                }, index * 300);
+            })(i);
+        }
+    } catch (e) {
+        console.error('Pack error:', e);
+        debug('Error: ' + e.message);
+        openingPack = false;
+        updateDisplay();
+    }
+}
+
+function createConfetti() {
+    for (var i = 0; i < 30; i++) {
+        var confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = ['#ffd700', '#ff6b35', '#f72585', '#4caf50'][Math.floor(Math.random() * 4)];
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        document.body.appendChild(confetti);
+        setTimeout(function(c) { return function() { c.remove(); }; }(confetti), 2000);
+    }
+}
+
+function sellCard(cardName) {
+    if (collection[cardName] > 1) {
+        var card = null;
+        for (var i = 0; i < PLAYERS.length; i++) {
+            if (PLAYERS[i].name === cardName) {
+                card = PLAYERS[i];
+                break;
+            }
+        }
+        collection[cardName]--;
+        money += Math.floor(card.value * 0.5);
+        updateDisplay();
+        saveGame();
+        debug('Sold ' + cardName + ' for £' + Math.floor(card.value * 0.5));
+    }
+}
+
+function sellAllDuplicates() {
+    var earned = 0;
+    for (var name in collection) {
+        if (collection[name] > 1) {
+            var card = null;
+            for (var i = 0; i < PLAYERS.length; i++) {
+                if (PLAYERS[i].name === name) {
+                    card = PLAYERS[i];
+                    break;
+                }
+            }
+            var dupes = collection[name] - 1;
+            earned += Math.floor(card.value * 0.5) * dupes;
+            collection[name] = 1;
+        }
+    }
+    money += earned;
+    updateDisplay();
+    saveGame();
+    renderCollection();
+    debug('Sold duplicates for £' + earned);
+}
+
+function buyBetterPacks() {
+    if (money >= betterPackCost) {
+        money -= betterPackCost;
+        betterPackLevel++;
+        betterPackCost = Math.floor(betterPackCost * 2);
+        updateDisplay();
+        saveGame();
+    }
+}
+
+function doPrestige() {
+    if (money < 100000) return;
+
+    if (confirm('Prestige for £100,000?\n\nYou will lose all cards and money but gain 2x pack luck on ALL packs permanently!\nThis stacks with each prestige.')) {
+        prestige++;
+        money = 5000;
+        totalCards = 0;
+        betterPackLevel = 0;
+        betterPackCost = 10000;
+        for (var i = 0; i < PLAYERS.length; i++) {
+            collection[PLAYERS[i].name] = 0;
+        }
+        updateDisplay();
+        saveGame();
+        renderCollection();
+        document.getElementById('cardsDisplay').innerHTML = '';
+        debug('Prestiged! ' + prestige + 'x luck bonus');
+    }
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+
+    if (tab === 'collection') {
+        document.getElementById('collectionTab').classList.add('active');
+        document.getElementById('collection-tab').style.display = 'block';
+        document.getElementById('shop-tab').style.display = 'none';
+        renderCollection();
+    } else {
+        document.getElementById('shopTab').classList.add('active');
+        document.getElementById('collection-tab').style.display = 'none';
+        document.getElementById('shop-tab').style.display = 'block';
+    }
+}
+
+function renderCollection() {
+    var grid = document.getElementById('collectionGrid');
+    grid.innerHTML = '';
+
+    var sortedPlayers = PLAYERS.slice().sort(function(a, b) { return b.rating - a.rating; });
+
+    for (var i = 0; i < sortedPlayers.length; i++) {
+        var card = sortedPlayers[i];
+        var owned = collection[card.name] > 0;
+        var cardEl = document.createElement('div');
+        cardEl.className = 'collection-card ' + card.rarity + (owned? ' owned' : ' unowned');
+        cardEl.innerHTML = '<
